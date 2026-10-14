@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+
+  api:
+    build:
+      context: .
+      dockerfile: payments_api/Dockerfile
+    container_name: payments_api
+    command: poetry run uvicorn payments_api.api.__init__:create_app --factory --reload --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      API_KEY: ${API_KEY}
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+#      rabbitmq:
+#        condition: service_healthy
+
+  migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrations
+    command: alembic upgrade head
+    env_file: ".env"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      retries: 3
+
+#  rabbitmq:
+#    image: rabbitmq:3.13-management-alpine
+#    environment:
+#      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+#      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+#    ports: [ "${RABBITMQ_PORT}:5672", "15672:15672" ]
+#    healthcheck:
+#      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+#      interval: 5s
+#      retries: 3
+
+volumes:
+  postgres-data:

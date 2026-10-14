@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "mkkbasis-test"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.143.1"
+toolz = "^1.2.0"
+pydantic-settings = "^2.16.0"
+sqlalchemy = {extras = ["asyncio"], version = "^2.1.4"}
+alembic = "^1.20.0"
+asyncpg = "^0.32.0"
+uvicorn = "^0.54.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
