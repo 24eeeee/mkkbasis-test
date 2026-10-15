@@ -22,8 +22,24 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
-#      rabbitmq:
-#        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  publisher:
+    build:
+      context: .
+      dockerfile: publisher/Dockerfile
+    command: poetry run python -m publisher.main
+    environment:
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
 
   migrations:
     build:
@@ -51,16 +67,19 @@ services:
       interval: 5s
       retries: 3
 
-#  rabbitmq:
-#    image: rabbitmq:3.13-management-alpine
-#    environment:
-#      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-#      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
-#    ports: [ "${RABBITMQ_PORT}:5672", "15672:15672" ]
-#    healthcheck:
-#      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
-#      interval: 5s
-#      retries: 3
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "${RABBITMQ_PORT}:5672"
+      - "15672:15672"
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 3
 
 volumes:
   postgres-data:
