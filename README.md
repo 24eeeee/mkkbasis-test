@@ -153,7 +153,7 @@ Publisher использует `FOR UPDATE SKIP LOCKED` для безопасн�
 
 ## Проверка DLQ
 
-Временно установи `simulate_gateway` в 100% фейл:
+Временно установи `simulate_gateway` (`consumer/handler.py`) в 100% фейл:
 
 ```python
 if random.random() < 1.0:
