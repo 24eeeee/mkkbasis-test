@@ -48,7 +48,7 @@ docker compose up
 
 API будет доступен на `http://localhost:8000`, RabbitMQ Management UI — на `http://localhost:15672` (guest / guest).
 
-Swagger: `http://localhost:8000/docs`.
+Интерактивная документация: `http://localhost:8000/docs`.
 
 ## Переменные окружения
 
