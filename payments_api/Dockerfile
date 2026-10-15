@@ -2,7 +2,7 @@
 FROM python:3.12-slim
 
 # set working directory
-WORKDIR /usr/src/payments_api
+WORKDIR /usr/src
 
 # install system dependencies
 RUN apt-get update && apt-get clean
@@ -15,4 +15,5 @@ COPY pyproject.toml .
 RUN poetry install --no-root
 
 # add app
-COPY . .
+COPY payments_api ./payments_api
+COPY shared ./payments_api
