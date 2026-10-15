@@ -17,8 +17,8 @@ async def run_publisher(broker: RabbitBroker) -> None:
     while True:
         try:
             await _publish_batch(broker)
-        except:
-            logger.exception("publisher iteration failed")
+        except Exception as e:
+            logger.exception(f'publisher iteration failed: {e}')
         await asyncio.sleep(POLL_INTERVAL)
 
 async def _publish_batch(broker: RabbitBroker) -> None:
@@ -34,15 +34,23 @@ async def _publish_batch(broker: RabbitBroker) -> None:
         if not rows:
             return
 
+        published_rows = 0
+
         for row in rows:
             try:
-                await broker.publish(row.payload, exchange=exchange, routing_key=row.event_type)
+                await broker.publish(
+                    {**row.payload, 'event_id': row.id},
+                    exchange=exchange,
+                    routing_key=row.event_type,
+                    persist=True,
+                )
                 row.status = OutboxStatus.PUBLISHED
                 row.published_at = datetime.now(timezone.utc)
+                published_rows += 1
             except Exception as e:
                 row.retry_count += 1
                 row.last_error = str(e)[:500]
                 logger.warning(f"publish failed outbox{row.id}: {e}")
 
         await session.commit()
-        logger.info(f"published {len(rows)} outbox records")
+        logger.info(f"published {published_rows} outbox records")

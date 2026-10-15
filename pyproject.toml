@@ -15,6 +15,7 @@ alembic = "^1.20.0"
 asyncpg = "^0.32.0"
 uvicorn = "^0.54.0"
 faststream = {extras = ["rabbit"], version = "^0.7.7"}
+httpx = "^0.28.1"
 
 
 [build-system]
