@@ -143,12 +143,12 @@ Publisher использует `FOR UPDATE SKIP LOCKED` для безопасн�
 
 На каждой ошибке (шлюз или webhook) consumer публикует сообщение в следующую retry-очередь с увеличенным `x-attempt`. Задержка растёт экспоненциально: 2s → 4s → 8s. После 4-й неудачи (1 начальная + 3 retry) сообщение уходит в DLQ.
 
-Очереди durable, сообщения persistent — переживают рестарт брокера.
+Очереди durable, сообщения persistent (+volume на контейнер RabbitMQ) — переживают рестарт брокера.
 
 ### Идемпотентность
 
 - **Уровень API:** `unique(idempotency_key)` на `payments` + обработка `IntegrityError`.
-- **Уровень consumer:** `UPDATE payments SET status=... WHERE id=... AND status='PENDING'` — условный переход по state machine. Повторная доставка сообщения не перезапишет статус.
+- **Уровень consumer:** `UPDATE payments SET status=... WHERE id=... AND status='PENDING'` — условный переход по state machine. Повторная попытка доставки сообщения не станет заново стучаться в платежный шлюз.
 - **Уровень webhook:** в теле передаётся стабильный `event_id` (id outbox-записи), клиент может дедуплицировать повторные уведомления.
 
 ## Проверка DLQ
